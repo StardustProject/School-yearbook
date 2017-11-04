@@ -139,11 +139,14 @@
             android:layout_weight="2"/>
     </LinearLayout>
 
-
     <android.support.design.widget.FloatingActionButton
+        android:id="@+id/floatingActionButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:clickable="true"
         android:src="@mipmap/right"
-        android:layout_gravity="bottom|end"/>
+        android:layout_gravity="bottom|end"
+        app:srcCompat="@color/colorAccent" />
+
+
 </LinearLayout>
