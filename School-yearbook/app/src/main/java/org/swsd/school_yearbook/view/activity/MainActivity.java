@@ -15,6 +15,7 @@ import android.widget.Toast;
 import org.swsd.school_yearbook.R;
 import org.swsd.school_yearbook.presenter.adapter.NoteAdapter;
 
+
 /**
  * author     :  骆景钊
  * time       :  2017/11/04
@@ -30,8 +31,8 @@ public class MainActivity extends AppCompatActivity{
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.rv_main);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.rv_main);
         recyclerView.setLayoutManager(layoutManager);
         NoteAdapter adapter = new NoteAdapter();
         recyclerView.setAdapter(adapter);
@@ -42,7 +43,6 @@ public class MainActivity extends AppCompatActivity{
                 showPopupMenu(addImaeView);
             }
         });
-
     }
 
     private void showPopupMenu(ImageView addImaeView) {
