@@ -156,7 +156,8 @@ public class MainActivity extends AppCompatActivity{
             public boolean onMenuItemClick(MenuItem item) {
                 switch (item.getItemId()){
                     case R.id.add_item:
-                        goAddNewPerson();
+                        /*goAddNewPerson();*/
+                        goSendEmailActivity();
                         break;
                     case R.id.excel_item:
                         Toast.makeText(MainActivity.this, "导出excel成功，请在文件管理器中查看", Toast.LENGTH_SHORT).show();
@@ -179,6 +180,11 @@ public class MainActivity extends AppCompatActivity{
         startActivity(intent);
     }
 
+    // 进入群发邮件状态
+    private void goSendEmailActivity(){
+        Intent intent = new Intent(MainActivity.this, SendEmailActivity.class);
+        startActivity(intent);
+    }
     //重写返回键
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode==KeyEvent.KEYCODE_BACK && checkboxflag == true){
@@ -202,6 +208,4 @@ public class MainActivity extends AppCompatActivity{
         //book.setEmail("@zyzhang");
         book.save();
     }
-
-
 }
