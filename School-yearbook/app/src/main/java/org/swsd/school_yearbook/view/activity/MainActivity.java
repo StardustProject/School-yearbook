@@ -1,9 +1,15 @@
 
 package org.swsd.school_yearbook.view.activity;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.PopupMenu;
@@ -18,15 +24,19 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.Toast;
+
 import org.litepal.crud.DataSupport;
 import org.swsd.school_yearbook.R;
 import org.swsd.school_yearbook.model.bean.SchoolyearbookBean;
 import org.swsd.school_yearbook.presenter.ExcelPresenter;
+import org.swsd.school_yearbook.presenter.ImagePresenter;
 import org.swsd.school_yearbook.presenter.adapter.MainPresenter;
 import org.swsd.school_yearbook.presenter.adapter.NoteAdapter;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import jxl.write.WriteException;
 
 
@@ -66,6 +76,8 @@ public class MainActivity extends AppCompatActivity implements NoteAdapter.Callb
     @Override
     protected void onResume() {
         super.onResume();
+        mSchoolyearbooks.clear();
+        mSchoolyearbooks.addAll(DataSupport.findAll(SchoolyearbookBean.class));
         adapter.notifyDataSetChanged();
     }
 
@@ -76,15 +88,10 @@ public class MainActivity extends AppCompatActivity implements NoteAdapter.Callb
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView = (RecyclerView) findViewById(R.id.rv_main);
         recyclerView.setLayoutManager(layoutManager);
-        mSchoolyearbooks = DataSupport.findAll(SchoolyearbookBean.class);
-        adapter = new NoteAdapter(getApplicationContext(), mSchoolyearbooks, this);
-        recyclerView.setAdapter(adapter);
-
-        //initData();
         mSchoolyearbooks = new ArrayList<>();
-        mSchoolyearbooks.clear();
-        mSchoolyearbooks = DataSupport.findAll(SchoolyearbookBean.class);
-        adapter = new NoteAdapter(getApplicationContext(), mSchoolyearbooks, this);
+        mSchoolyearbooks.addAll(DataSupport.findAll(SchoolyearbookBean.class));
+        adapter = new NoteAdapter(this, mSchoolyearbooks, this);
+
         adapter.setOnItemClickListener(new NoteAdapter.OnItemOnClickListener() {
             @Override
             public void onItemLongOnClick(View view, int pos) {
@@ -121,17 +128,16 @@ public class MainActivity extends AppCompatActivity implements NoteAdapter.Callb
         deleteImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //Toast.makeText(MainActivity.this, "点击了删除按钮" + idList.size(), Toast.LENGTH_SHORT).show();
 
                 //删除选中
                 for(int i = 0; i < idList.size(); i++){
-//                    Log.d("hahaha",mSchoolyearbooks.get(idList.get(i)).getEmail()+"");
-                    DataSupport.deleteAll(SchoolyearbookBean.class, "name = ?", mSchoolyearbooks.get(idList.get(i)).getName());
+                    DataSupport.deleteAll(SchoolyearbookBean.class, "name = ?",
+                            mSchoolyearbooks.get(idList.get(i) - i).getName());
                     mSchoolyearbooks.remove(idList.get(i) - i);
                 }
                 adapter.notifyDataSetChanged();
+                Toast.makeText(MainActivity.this, "成功删除" + idList.size()+"个联系人", Toast.LENGTH_SHORT).show();
                 idList.clear();
-                recyclerView.scrollToPosition(0);
             }
         });
 
@@ -155,12 +161,12 @@ public class MainActivity extends AppCompatActivity implements NoteAdapter.Callb
                 //编辑框内容改变时
                 if(s.length()==0){
                     allList=mainPresenter.getAllList();
-                    NoteAdapter adapter = new NoteAdapter(getApplicationContext(),allList);
-                    recyclerView.setAdapter(adapter);
+                    NoteAdapter newAdapter = new NoteAdapter(getApplicationContext(),allList);
+                    recyclerView.setAdapter(newAdapter);
                 }else{
                     selectedList=mainPresenter.toSelect(s.toString());
-                    NoteAdapter adapter = new NoteAdapter(getApplicationContext(),selectedList);
-                    recyclerView.setAdapter(adapter);
+                    NoteAdapter newAdapter = new NoteAdapter(getApplicationContext(),selectedList);
+                    recyclerView.setAdapter(newAdapter);
                 }
             }
 
@@ -191,7 +197,7 @@ public class MainActivity extends AppCompatActivity implements NoteAdapter.Callb
                         exportExcel();
                         break;
                     case R.id.photo_item:
-                        Toast.makeText(MainActivity.this, "导出jpg成功，请在文件管理器中查看", Toast.LENGTH_SHORT).show();
+                        exportPhoto();
                         break;
                     default:
                         break;
@@ -211,8 +217,6 @@ public class MainActivity extends AppCompatActivity implements NoteAdapter.Callb
     // 进入群发邮件状态
     private void goSendEmailActivity(){
         Intent intent = new Intent(MainActivity.this, SendEmailActivity.class);
-        emailList = new ArrayList<>();
-        emailList.add("1009224322@qq.com");
         emailList.add("1009224322@qq.com");
         ArrayList<String> Test = (ArrayList<String>) emailList;
         intent.putStringArrayListExtra("email",Test);
@@ -245,20 +249,19 @@ public class MainActivity extends AppCompatActivity implements NoteAdapter.Callb
     // 导出excel
     private void exportExcel(){
         try {
-            ExcelPresenter.writeExcel("StartDust");
-            Toast.makeText(MainActivity.this, "导出excel成功，请在文件管理器中查看", Toast.LENGTH_SHORT).show();
+            if (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                //进行授权
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+            } else {
+                //已经授权
+                ExcelPresenter.writeExcel("/Schoolyearbook");
+                Toast.makeText(MainActivity.this, "导出excel成功，请在文件管理器中查看", Toast.LENGTH_SHORT).show();
+            }
         } catch (WriteException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-        }
-        for (int i = 0; i < 10; i++)
-        {
-            SchoolyearbookBean book = new SchoolyearbookBean();
-            book.setName("zyzhang" + i);
-            book.setPhone("123456");
-            //book.setEmail("@zyzhang");
-            book.save();
         }
     }
 
@@ -270,6 +273,59 @@ public class MainActivity extends AppCompatActivity implements NoteAdapter.Callb
 
     public void backCreateDate(){
         mSchoolyearbooks = DataSupport.findAll(SchoolyearbookBean.class);
+
     }
 
+    private  void exportPhoto() {
+
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            //进行授权
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 2);
+
+        } else {
+            //已经授权
+            Bitmap bitmap = ImagePresenter.getScreenshotFromRecyclerView(recyclerView);
+            ImagePresenter.saveImage(bitmap, "/Schoolyearbook");
+            Toast.makeText(MainActivity.this, "导出纪念相册成功，请在文件管理器中查看", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case 1:
+                if (!(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    Toast.makeText(this, "权限被拒绝了", Toast.LENGTH_SHORT).show();
+                } else {
+                    //权限申请成功
+                    Toast.makeText(this, "权限申请成功", Toast.LENGTH_SHORT).show();
+                    try {
+                        ExcelPresenter.writeExcel("/Schoolyearbook");
+                        Toast.makeText(MainActivity.this, "导出excel成功，请在文件管理器中查看", Toast.LENGTH_SHORT).show();
+                    } catch (WriteException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+                break;
+            case 2:
+                if (!(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    Toast.makeText(this, "权限被拒绝了", Toast.LENGTH_SHORT).show();
+                } else {
+                    //权限申请成功
+                    Toast.makeText(this, "权限申请成功", Toast.LENGTH_SHORT).show();
+                    Bitmap bitmap = ImagePresenter.getScreenshotFromRecyclerView(recyclerView);
+                    ImagePresenter.saveImage(bitmap, "/Schoolyearbook");
+                    Toast.makeText(MainActivity.this, "导出纪念相册成功，请在文件管理器中查看", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            default:
+                break;
+        }
+    }
 }
