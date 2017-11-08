@@ -115,8 +115,8 @@ public class MainActivity extends AppCompatActivity implements NoteAdapter.Callb
                         emailList.add(mSchoolyearbooks.get(idList.get(i)).getEmail());
                     }
                     idList.clear();
-                    emailList.clear();
                     goSendEmailActivity();
+                    emailList.clear();
                     //将选择框隐藏
                     adapter.checkTemp = false;
                     adapter.notifyDataSetChanged();
@@ -124,7 +124,6 @@ public class MainActivity extends AppCompatActivity implements NoteAdapter.Callb
                     frameLayout.setVisibility(View.GONE);
                 }else{
                     Toast.makeText(MainActivity.this, "未选中任何选项", Toast.LENGTH_SHORT).show();
-
                 }
             }
         });

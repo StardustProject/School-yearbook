@@ -26,9 +26,14 @@ public class SendEmailActivity extends AppCompatActivity {
         sendEmail.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                sendEmail.setClickable(false);
-                Toast.makeText(SendEmailActivity.this, "发送邮件中，请不要进行任何操作", Toast.LENGTH_SHORT).show();
-                sendEmailAll();
+                if(!eMailContent.getText().toString().equals("")){
+                    sendEmail.setClickable(false);
+                    Toast.makeText(SendEmailActivity.this, "发送邮件中，请不要进行任何操作", Toast.LENGTH_SHORT).show();
+                    sendEmailAll();
+                }else{
+                    Toast.makeText(SendEmailActivity.this, "请输入邮件内容！", Toast.LENGTH_SHORT).show();
+                }
+
             }
         });
     }
@@ -46,13 +51,14 @@ public class SendEmailActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-                    SendEmail.send(eMailContent.getText().toString(),eMailAddress);
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(SendEmailActivity.this, "邮件发送成功！", Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                        SendEmail.send(eMailContent.getText().toString(),eMailAddress);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(SendEmailActivity.this, "邮件发送成功！", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }finally {
